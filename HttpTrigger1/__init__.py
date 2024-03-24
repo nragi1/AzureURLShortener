@@ -13,29 +13,17 @@ container_name = 'urls'
 container = database.get_container_client(container_name)
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
-    try:
-        req_body = req.get_json()
-    except ValueError:
-        return func.HttpResponse("Invalid JSON", status_code=400)
-    
-    url = req_body.get('url')
-    short_code = req_body.get('short_code')
-    description = req_body.get('description', "")
-
-    try:
-        data = {
-            "id": short_code,
-            "received_url": url,
-            "received_short_code": short_code,
-            "received_description": description
-        }
-        container.upsert_item(data)
-    except exceptions.CosmosHttpResponseError as e:
-        logging.error(e, exc_info=True)
-        return func.HttpResponse(f"Error creating short URL: {str(e)}", status_code=500)
-    
+    logging.info('List function processed a request.')
+    items = list(container.query_items(query='SELECT * FROM c', enable_cross_partition_query=True))
     base_url = "http://localhost:7071/api"
-    short_url = f"{base_url}/{short_code}"
-    response_data = {"short_url": short_url}
+    urls_list = [
+        {
+            "Shortened URL": f"{base_url}/{item.get('id')}",
+            "Long URL": item.get("received_url"),
+            "Description": item.get("received_description", "No description found")
+        }
+        for item in items
+        
+    ]
     
-    return func.HttpResponse(json.dumps(response_data), status_code=200, headers={"Content-Type": "application/json"})
+    return func.HttpResponse(json.dumps(urls_list), status_code=200, headers={"Content-Type": "application/json"})
