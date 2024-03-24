@@ -19,7 +19,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse("Invalid JSON", status_code=400)
     
     url = req_body.get('url')
-    short_code = req_body.get('short_code')
+    short_code = req_body.get('short_code').lower()
     description = req_body.get('description', "")
 
     try:

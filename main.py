@@ -17,8 +17,8 @@ def create_shortcode():
     
     response = requests.post(function_url, json=data)
     # Debugging
-    # print(f"Status Code: {response.status_code}")
-    # print(f"Function URL: {function_url}")
+    #print(f"Status Code: {response.status_code}")
+    #print(f"Function URL: {function_url}")
     try:
         response_data = response.json()
         print(f"Short URL: {response_data.get('short_url', 'No short URL found')}")
